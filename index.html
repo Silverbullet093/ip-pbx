@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Call Pickup pada Sistem Telepon IP (IP-PBX) - Presentasi Interaktif</title>
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+  <!-- Preload Initial Slide -->
+  <link rel="preload" as="image" href="assets/slides/slide-01.png">
+  <link rel="preload" as="image" href="assets/slides/slide-02.png">
+
+  <!-- Stylesheet -->
+  <link rel="stylesheet" href="style.css">
+
+  <!-- GSAP CDN -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+</head>
+<body>
+  <!-- Ambient Backdrop Glow -->
+  <div class="ambient-backdrop" aria-hidden="true">
+    <div class="glow-orb glow-orb-1"></div>
+    <div class="glow-orb glow-orb-2"></div>
+    <div class="circuit-grid-overlay"></div>
+  </div>
+
+  <!-- Main Presentation Stage Wrapper -->
+  <main class="presentation-wrapper" id="presentationWrapper">
+    <!-- 16:9 Slide Stage -->
+    <div class="slide-stage" id="slideStage" role="region" aria-label="Slideshow Presentasi">
+      <div class="slides-container" id="slidesContainer">
+        <!-- Slides will be initialized here by JavaScript or HTML -->
+      </div>
+
+      <!-- Morph Effect Overlay Layer -->
+      <div class="morph-overlay" id="morphOverlay" aria-hidden="true">
+        <div class="morph-beam" id="morphBeam"></div>
+        <div class="morph-beam-vertical" id="morphBeamVertical"></div>
+        <div class="morph-glow-pulse" id="morphGlowPulse"></div>
+        <div class="morph-vignette" id="morphVignette"></div>
+      </div>
+    </div>
+
+    <!-- Edge Navigation Buttons -->
+    <button class="edge-nav edge-prev" id="edgePrevBtn" title="Slide Sebelumnya (Panah Kiri)" aria-label="Slide Sebelumnya">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="15 18 9 12 15 6"></polyline>
+      </svg>
+    </button>
+    <button class="edge-nav edge-next" id="edgeNextBtn" title="Slide Selanjutnya (Panah Kanan / Spasi)" aria-label="Slide Selanjutnya">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="9 18 15 12 9 6"></polyline>
+      </svg>
+    </button>
+
+    <!-- Floating HUD / Minimal Control Bar -->
+    <nav class="hud-bar" id="hudBar" aria-label="Kontrol Presentasi">
+      <div class="hud-pill">
+        <!-- Prev Button -->
+        <button class="hud-btn" id="prevBtn" title="Slide Sebelumnya (← / PageUp)" aria-label="Slide Sebelumnya">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="15 18 9 12 15 6"></polyline>
+          </svg>
+        </button>
+
+        <!-- Slide Counter -->
+        <div class="hud-counter" id="hudCounter" title="Klik untuk membuka Overview Grid" role="status">
+          <span class="curr-page" id="currentNum">01</span>
+          <span class="divider">/</span>
+          <span class="total-page" id="totalNum">14</span>
+        </div>
+
+        <!-- Next Button -->
+        <button class="hud-btn" id="nextBtn" title="Slide Selanjutnya (→ / Spasi / PageDown)" aria-label="Slide Selanjutnya">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="9 18 15 12 9 6"></polyline>
+          </svg>
+        </button>
+
+        <div class="hud-separator"></div>
+
+        <!-- Morph Variation Toggle Button -->
+        <button class="hud-btn morph-toggle-btn" id="morphModeBtn" title="Variasi Animasi Morph (Klik untuk berganti)" aria-label="Variasi Animasi Morph">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"></path>
+          </svg>
+          <span class="morph-badge-dot"></span>
+        </button>
+
+        <!-- Overview Grid Button -->
+        <button class="hud-btn" id="overviewBtn" title="Tampilkan Semua Slide (O / G)" aria-label="Tampilkan Semua Slide">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="3" width="7" height="7" rx="1.5"></rect>
+            <rect x="14" y="3" width="7" height="7" rx="1.5"></rect>
+            <rect x="14" y="14" width="7" height="7" rx="1.5"></rect>
+            <rect x="3" y="14" width="7" height="7" rx="1.5"></rect>
+          </svg>
+        </button>
+
+        <!-- Fullscreen Button -->
+        <button class="hud-btn" id="fullscreenBtn" title="Mode Layar Penuh (F)" aria-label="Mode Layar Penuh">
+          <svg class="icon-expand" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path>
+          </svg>
+          <svg class="icon-compress" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: none;">
+            <path d="M4 14h6m0 0v6m0-6L3 21m17-7h-6m0 0v6m0-6l7 7M10 4v6m0 0H4m6 0L3 3m10 7h6m-6 0V4m0 6l7-7"></path>
+          </svg>
+        </button>
+
+        <!-- Shortcuts Info Button -->
+        <button class="hud-btn" id="shortcutsBtn" title="Pintasan Keyboard (?)" aria-label="Pintasan Keyboard">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"></circle>
+            <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+            <line x1="12" y1="17" x2="12.01" y2="17"></line>
+          </svg>
+        </button>
+      </div>
+    </nav>
+
+    <!-- Bottom Progress Scrubber -->
+    <div class="progress-container" id="progressContainer" title="Klik atau seret untuk lompat slide">
+      <div class="progress-track">
+        <div class="progress-bar" id="progressBar"></div>
+        <div class="progress-glow-head"></div>
+      </div>
+      <div class="progress-tooltip" id="progressTooltip">
+        <span class="tooltip-num">01</span>: <span class="tooltip-title">Cover</span>
+      </div>
+    </div>
+  </main>
+
+  <!-- Slide Overview / Grid Modal -->
+  <aside class="overview-modal" id="overviewModal" aria-hidden="true" role="dialog" aria-label="Daftar Slide Presentasi">
+    <div class="overview-header">
+      <div class="overview-title-group">
+        <h2 class="overview-title">Daftar Slide Presentasi</h2>
+        <span class="overview-subtitle">Pilih slide untuk melompat langsung</span>
+      </div>
+      <button class="overview-close" id="overviewCloseBtn" aria-label="Tutup Overview (Esc)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
+    </div>
+
+    <div class="overview-grid" id="overviewGrid">
+      <!-- Generated by JavaScript dynamically -->
+    </div>
+  </aside>
+
+  <!-- Keyboard Shortcuts Modal Dialog -->
+  <div class="shortcuts-modal" id="shortcutsModal" aria-hidden="true" role="dialog" aria-label="Panduan Pintasan Keyboard">
+    <div class="shortcuts-card">
+      <div class="shortcuts-header">
+        <div class="shortcuts-title-wrap">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#00e5ff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="22" height="22">
+            <rect x="2" y="4" width="20" height="16" rx="2"></rect>
+            <path d="M6 8h.001M10 8h.001M14 8h.001M18 8h.001M6 12h.001M10 12h.001M14 12h.001M18 12h.001M7 16h10"></path>
+          </svg>
+          <h3>Pintasan Keyboard</h3>
+        </div>
+        <button class="shortcuts-close" id="shortcutsCloseBtn" aria-label="Tutup Panduan (Esc)">✕</button>
+      </div>
+      <div class="shortcuts-list">
+        <div class="shortcut-item">
+          <span class="shortcut-keys"><kbd>→</kbd> / <kbd>Spasi</kbd> / <kbd>PageDown</kbd></span>
+          <span class="shortcut-desc">Slide berikutnya (Morph maju)</span>
+        </div>
+        <div class="shortcut-item">
+          <span class="shortcut-keys"><kbd>←</kbd> / <kbd>PageUp</kbd></span>
+          <span class="shortcut-desc">Slide sebelumnya (Morph mundur)</span>
+        </div>
+        <div class="shortcut-item">
+          <span class="shortcut-keys"><kbd>Home</kbd></span>
+          <span class="shortcut-desc">Lompat ke Slide Pertama (Cover)</span>
+        </div>
+        <div class="shortcut-item">
+          <span class="shortcut-keys"><kbd>End</kbd></span>
+          <span class="shortcut-desc">Lompat ke Slide Terakhir</span>
+        </div>
+        <div class="shortcut-item">
+          <span class="shortcut-keys"><kbd>M</kbd></span>
+          <span class="shortcut-desc">Ganti Variasi Animasi Morph (Smart/Depth/Flow/Cascade/Focal)</span>
+        </div>
+        <div class="shortcut-item">
+          <span class="shortcut-keys"><kbd>O</kbd> / <kbd>G</kbd></span>
+          <span class="shortcut-desc">Buka / Tutup Ringkasan Grid Slide</span>
+        </div>
+        <div class="shortcut-item">
+          <span class="shortcut-keys"><kbd>F</kbd></span>
+          <span class="shortcut-desc">Toggle Mode Layar Penuh (Fullscreen)</span>
+        </div>
+        <div class="shortcut-item">
+          <span class="shortcut-keys"><kbd>Esc</kbd></span>
+          <span class="shortcut-desc">Tutup Dialog / Keluar Fullscreen</span>
+        </div>
+        <div class="shortcut-item">
+          <span class="shortcut-keys">Swipe Kiri / Kanan</span>
+          <span class="shortcut-desc">Navigasi gestur pada layar sentuh / mobile</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification / Quick Indicator -->
+  <div class="toast-indicator" id="toastIndicator"></div>
+
+  <!-- Main JavaScript -->
+  <script src="script.js"></script>
+</body>
+</html>
