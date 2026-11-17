@@ -1,6 +1,7 @@
 /**
  * CALL PICKUP IP-PBX INTERACTIVE PRESENTATION
  * Morph Transition Engine with GSAP & Full Navigation Controls
+ * Featuring Multi-Style & Contextual Slide Morph Animations
  */
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -87,12 +88,44 @@ document.addEventListener('DOMContentLoaded', () => {
   const IDLE_TIMEOUT_MS = 3500;
 
   // ==========================================
+  // MORPH VARIATION CONFIGURATIONS
+  // ==========================================
+  const MORPH_MODES = [
+    { id: 'smart', label: 'Smart Kontekstual (Bervariasi Otomatis)' },
+    { id: 'depth', label: 'Depth 3D Zoom' },
+    { id: 'flow', label: 'Lateral Flow' },
+    { id: 'cascade', label: 'Vertical Cascade' },
+    { id: 'focal', label: 'Focal Aperture' }
+  ];
+
+  let currentMorphModeIndex = 0; // default to 'smart'
+
+  // Contextual transitions tailored for each slide relationship in 'smart' mode
+  const CONTEXTUAL_MORPH_MAP = {
+    '0-1': { name: "Depth Drift & Focus", fromScale: 1.04, toScale: 0.96, x: 28, y: -6, blur: 3, overlay: 'pulse' },
+    '1-2': { name: "3-Pillars Unfold", fromScale: 0.98, toScale: 1.02, x: 0, y: 32, blur: 3, overlay: 'cascade' },
+    '2-3': { name: "PBX Circuit Flow", fromScale: 1.0, toScale: 1.0, x: 42, y: 0, blur: 2, overlay: 'beam-horiz' },
+    '3-4': { name: "Platform Matrix Shift", fromScale: 0.98, toScale: 1.0, x: -25, y: -12, blur: 3, overlay: 'beam-horiz' },
+    '4-5': { name: "Network Hub Radial Expand", fromScale: 1.03, toScale: 0.96, x: 0, y: 0, blur: 4, overlay: 'pulse' },
+    '5-6': { name: "SIP Protocol Ladder Wave", fromScale: 1.0, toScale: 1.0, x: 0, y: -36, blur: 3, overlay: 'cascade' },
+    '6-7': { name: "Server Hardware Isometric Dock", fromScale: 0.97, toScale: 1.02, x: 32, y: 18, blur: 3, overlay: 'pulse' },
+    '7-8': { name: "Terminal Inset Focus", fromScale: 1.04, toScale: 0.96, x: 0, y: 0, blur: 4, overlay: 'vignette' },
+    '8-9': { name: "Dual-Console Spread", fromScale: 0.97, toScale: 1.0, x: -38, y: 0, blur: 2, overlay: 'beam-horiz' },
+    '9-10': { name: "Field Scenario Trio Glide", fromScale: 0.98, toScale: 1.0, x: 0, y: 26, blur: 3, overlay: 'cascade' },
+    '10-11': { name: "Security Shield Tilt", fromScale: 1.02, toScale: 0.97, x: 32, y: -10, blur: 3, overlay: 'vignette' },
+    '11-12': { name: "Convergence Core Summary", fromScale: 0.96, toScale: 1.03, x: 0, y: 0, blur: 3, overlay: 'pulse' },
+    '12-13': { name: "Scholarly Outro Drift", fromScale: 1.02, toScale: 0.98, x: 18, y: 12, blur: 3, overlay: 'beam-horiz' }
+  };
+
+  // ==========================================
   // 2. DOM ELEMENTS
   // ==========================================
   const slidesContainer = document.getElementById('slidesContainer');
   const morphOverlay = document.getElementById('morphOverlay');
-  const morphBeam = morphOverlay ? morphOverlay.querySelector('.morph-beam') : null;
-  const morphGlowPulse = morphOverlay ? morphOverlay.querySelector('.morph-glow-pulse') : null;
+  const morphBeam = document.getElementById('morphBeam');
+  const morphBeamVertical = document.getElementById('morphBeamVertical');
+  const morphGlowPulse = document.getElementById('morphGlowPulse');
+  const morphVignette = document.getElementById('morphVignette');
 
   const currentNumEl = document.getElementById('currentNum');
   const totalNumEl = document.getElementById('totalNum');
@@ -104,6 +137,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const nextBtn = document.getElementById('nextBtn');
   const edgePrevBtn = document.getElementById('edgePrevBtn');
   const edgeNextBtn = document.getElementById('edgeNextBtn');
+  const morphModeBtn = document.getElementById('morphModeBtn');
 
   const overviewBtn = document.getElementById('overviewBtn');
   const overviewModal = document.getElementById('overviewModal');
@@ -217,12 +251,111 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // ==========================================
-  // 4. POWERPOINT-INSPIRED MORPH TRANSITION
+  // 4. POWERPOINT MORPH ENGINE (VARIASI DINAMIS)
   // ==========================================
   /**
-   * Transisi Morph menggunakan GSAP:
-   * Menggabungkan posisi halus, scale, crossfade, dan blur sangat ringan (4px),
-   * ditambah luminous energy beam overlay yang bergerak mengikuti arah slide.
+   * Menghitung parameter animasi morph berdasarkan mode aktif dan relasi slide
+   */
+  function computeMorphParams(fromIndex, toIndex, direction) {
+    const isForward = direction === 'next';
+    const activeMode = MORPH_MODES[currentMorphModeIndex].id;
+
+    if (activeMode === 'smart') {
+      // Periksa apakah ada konfigurasi kontekstual untuk pasangan slide ini
+      const key = isForward ? `${fromIndex}-${toIndex}` : `${toIndex}-${fromIndex}`;
+      if (CONTEXTUAL_MORPH_MAP[key]) {
+        const conf = CONTEXTUAL_MORPH_MAP[key];
+        return {
+          duration: 0.75,
+          fromScale: isForward ? conf.fromScale : conf.toScale,
+          toScale: isForward ? conf.toScale : conf.fromScale,
+          shiftX: isForward ? conf.x : -conf.x,
+          shiftY: isForward ? conf.y : -conf.y,
+          blur: conf.blur,
+          overlayType: conf.overlay,
+          name: conf.name
+        };
+      }
+      // Fallback untuk lompatan non-adjacent dalam mode smart
+      return {
+        duration: 0.72,
+        fromScale: isForward ? 1.03 : 0.97,
+        toScale: isForward ? 0.97 : 1.03,
+        shiftX: isForward ? 35 : -35,
+        shiftY: 0,
+        blur: 3,
+        overlayType: 'beam-horiz',
+        name: isForward ? 'Forward Stream' : 'Reverse Stream'
+      };
+    }
+
+    if (activeMode === 'depth') {
+      return {
+        duration: 0.8,
+        fromScale: isForward ? 1.05 : 0.94,
+        toScale: isForward ? 0.94 : 1.05,
+        shiftX: 0,
+        shiftY: 0,
+        blur: 4,
+        overlayType: 'pulse',
+        name: 'Depth 3D Zoom'
+      };
+    }
+
+    if (activeMode === 'flow') {
+      return {
+        duration: 0.75,
+        fromScale: 1.0,
+        toScale: 1.0,
+        shiftX: isForward ? 45 : -45,
+        shiftY: 0,
+        blur: 2.5,
+        overlayType: 'beam-horiz',
+        name: 'Lateral Flow'
+      };
+    }
+
+    if (activeMode === 'cascade') {
+      return {
+        duration: 0.75,
+        fromScale: isForward ? 0.99 : 1.01,
+        toScale: isForward ? 1.01 : 0.99,
+        shiftX: 0,
+        shiftY: isForward ? 40 : -40,
+        blur: 3,
+        overlayType: 'cascade',
+        name: 'Vertical Cascade'
+      };
+    }
+
+    if (activeMode === 'focal') {
+      return {
+        duration: 0.8,
+        fromScale: 1.02,
+        toScale: 0.97,
+        shiftX: isForward ? 15 : -15,
+        shiftY: 0,
+        blur: 4.5,
+        overlayType: 'vignette',
+        name: 'Focal Aperture'
+      };
+    }
+
+    // Default safe fallback
+    return {
+      duration: 0.75,
+      fromScale: 1.03,
+      toScale: 0.97,
+      shiftX: isForward ? 30 : -30,
+      shiftY: 0,
+      blur: 3,
+      overlayType: 'beam-horiz',
+      name: 'Standard Morph'
+    };
+  }
+
+  /**
+   * Eksekusi Animasi Morph GSAP
    */
   function morphTransition(fromIndex, toIndex, direction = 'next') {
     if (fromIndex === toIndex) return;
@@ -232,8 +365,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const toSlide = slideElements[toIndex];
     const isForward = direction === 'next';
 
-    // Transition timing (750ms fits the 600-900ms requirement)
-    const duration = 0.75;
+    const params = computeMorphParams(fromIndex, toIndex, direction);
     const morphEase = "power2.out";
 
     // Prepare classes
@@ -244,17 +376,13 @@ document.addEventListener('DOMContentLoaded', () => {
     toSlide.classList.add('animating-in');
     toSlide.setAttribute('aria-hidden', 'false');
 
-    // Directional offsets
-    const shiftX = isForward ? 30 : -30;
-    const shiftY = isForward ? 6 : -6;
-
     // Reset initial states for incoming slide
     gsap.set(toSlide, {
       opacity: 0,
-      scale: isForward ? 0.97 : 1.03,
-      x: shiftX,
-      y: shiftY,
-      filter: 'blur(3px)',
+      scale: params.toScale,
+      x: params.shiftX,
+      y: params.shiftY,
+      filter: `blur(${params.blur}px)`,
       visibility: 'visible',
       zIndex: 3
     });
@@ -288,53 +416,81 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 1. Animate Outgoing Slide
     tl.to(fromSlide, {
-      duration: duration * 0.85,
+      duration: params.duration * 0.85,
       opacity: 0,
-      scale: isForward ? 1.03 : 0.97,
-      x: -shiftX * 0.8,
-      y: -shiftY * 0.8,
-      filter: 'blur(4px)',
+      scale: params.fromScale,
+      x: -params.shiftX * 0.7,
+      y: -params.shiftY * 0.7,
+      filter: `blur(${params.blur + 1}px)`,
       ease: "power2.inOut"
     }, 0);
 
     // 2. Animate Incoming Slide
     tl.to(toSlide, {
-      duration: duration,
+      duration: params.duration,
       opacity: 1,
       scale: 1,
       x: 0,
       y: 0,
       filter: 'blur(0px)',
       ease: morphEase
-    }, 0.08);
+    }, 0.06);
 
-    // 3. Morph Light Overlay Pulse & Beam Sweep
-    if (morphOverlay && morphBeam && morphGlowPulse) {
-      gsap.set(morphOverlay, { opacity: 1 });
-      
+    // 3. Coordinated Morph Overlay Effects
+    triggerMorphOverlay(params.overlayType, isForward, params.duration);
+  }
+
+  function triggerMorphOverlay(type, isForward, duration) {
+    if (!morphOverlay) return;
+    gsap.set(morphOverlay, { opacity: 1 });
+
+    if (type === 'beam-horiz' && morphBeam) {
       const beamStart = isForward ? -100 : 350;
       const beamEnd = isForward ? 350 : -100;
-      
       gsap.fromTo(morphBeam, 
-        { xPercent: beamStart },
+        { xPercent: beamStart, opacity: 1 },
         { 
           xPercent: beamEnd, 
-          duration: duration * 0.9, 
-          ease: "power1.inOut" 
+          duration: duration * 0.85, 
+          ease: "power1.inOut",
+          onComplete: () => gsap.set(morphOverlay, { opacity: 0 })
         }
       );
-
-      gsap.fromTo(morphGlowPulse,
+    } else if (type === 'cascade' && morphBeamVertical) {
+      const beamStart = isForward ? -100 : 350;
+      const beamEnd = isForward ? 350 : -100;
+      gsap.fromTo(morphBeamVertical,
+        { yPercent: beamStart, opacity: 1 },
+        { 
+          yPercent: beamEnd, 
+          duration: duration * 0.85, 
+          ease: "power1.inOut",
+          onComplete: () => gsap.set(morphOverlay, { opacity: 0 })
+        }
+      );
+    } else if (type === 'vignette' && morphVignette) {
+      gsap.fromTo(morphVignette,
         { opacity: 0 },
         { 
-          opacity: 0.6, 
-          duration: duration * 0.4, 
+          opacity: 0.8, 
+          duration: duration * 0.45, 
           yoyo: true, 
           repeat: 1, 
           ease: "sine.inOut",
-          onComplete: () => {
-            gsap.set(morphOverlay, { opacity: 0 });
-          }
+          onComplete: () => gsap.set(morphOverlay, { opacity: 0 })
+        }
+      );
+    } else if (morphGlowPulse) {
+      // Default radial pulse
+      gsap.fromTo(morphGlowPulse,
+        { opacity: 0 },
+        { 
+          opacity: 0.65, 
+          duration: duration * 0.45, 
+          yoyo: true, 
+          repeat: 1, 
+          ease: "sine.inOut",
+          onComplete: () => gsap.set(morphOverlay, { opacity: 0 })
         }
       );
     }
@@ -386,6 +542,16 @@ document.addEventListener('DOMContentLoaded', () => {
     edgeNextBtn.disabled = isLast;
   }
 
+  // Cycle Morph Mode
+  function cycleMorphMode() {
+    currentMorphModeIndex = (currentMorphModeIndex + 1) % MORPH_MODES.length;
+    const currentMode = MORPH_MODES[currentMorphModeIndex];
+    showToast(`Mode Morph: ${currentMode.label}`);
+    if (morphModeBtn) {
+      morphModeBtn.setAttribute('title', `Variasi Morph: ${currentMode.label} (Klik untuk ganti)`);
+    }
+  }
+
   // Toast Helper
   let toastTimeout = null;
   function showToast(message) {
@@ -395,7 +561,7 @@ document.addEventListener('DOMContentLoaded', () => {
     clearTimeout(toastTimeout);
     toastTimeout = setTimeout(() => {
       toastIndicator.classList.remove('show');
-    }, 1800);
+    }, 2000);
   }
 
   // ==========================================
@@ -406,6 +572,9 @@ document.addEventListener('DOMContentLoaded', () => {
   nextBtn.addEventListener('click', () => { resetIdleTimer(); nextSlide(); });
   edgePrevBtn.addEventListener('click', () => { resetIdleTimer(); prevSlide(); });
   edgeNextBtn.addEventListener('click', () => { resetIdleTimer(); nextSlide(); });
+  if (morphModeBtn) {
+    morphModeBtn.addEventListener('click', () => { resetIdleTimer(); cycleMorphMode(); });
+  }
 
   // Keyboard Shortcuts
   window.addEventListener('keydown', (e) => {
@@ -452,6 +621,12 @@ document.addEventListener('DOMContentLoaded', () => {
         e.preventDefault();
         goToSlide(totalSlides - 1);
         showToast('Slide Terakhir');
+        break;
+
+      case 'm':
+      case 'M':
+        e.preventDefault();
+        cycleMorphMode();
         break;
 
       case 'f':
